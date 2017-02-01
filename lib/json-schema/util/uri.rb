@@ -28,9 +28,7 @@ module JSON
 
         return ref_uri if ref_uri.absolute?
         return parse(base) if ref_uri.path.empty?
-
-        uri = strip_fragment(base.dup).join(ref_uri.path)
-        normalized_uri(uri)
+        normalized_uri(ref_uri)
       end
 
       def self.normalize_ref(ref, base)
@@ -39,18 +37,8 @@ module JSON
 
         ref_uri.defer_validation do
           if ref_uri.relative?
-            ref_uri.merge!(base_uri)
-
-            # Check for absolute path
             path, fragment = ref.to_s.split("#")
-            if path.nil? || path == ''
-              ref_uri.path = base_uri.path
-            elsif path[0,1] == "/"
-              ref_uri.path = Pathname.new(path).cleanpath.to_s
-            else
-              ref_uri.join!(path)
-            end
-
+            ref_uri.path = normalized_uri(ref).path
             ref_uri.fragment = fragment
           end
 
